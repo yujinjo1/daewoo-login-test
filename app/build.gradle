@@ -1,0 +1,236 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.21'
+    id 'com.google.gms.google-services' // ✅ Firebase / Google 로그인용 플러그인
+}
+
+android {
+    namespace = "com.example.daewoo"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.example.daewoo"
+        minSdk = 24
+        targetSdk = 33
+        versionCode = 1
+        versionName = "1.0"
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++17"
+                arguments "-DCMAKE_BUILD_TYPE=Debug"
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            signingConfig signingConfigs.debug
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
+    aaptOptions {
+        noCompress = ['.unity3d', '.ress', '.resource', '.obb', '.bundle', '.unityexp'] + unityStreamingAssets.tokenize(', ')
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    packagingOptions {
+        doNotStrip '*/armeabi-v7a/*.so'
+        doNotStrip '*/arm64-v8a/*.so'
+    }
+
+    bundle {
+        language { enableSplit = false }
+        density { enableSplit = false }
+        abi { enableSplit = true }
+    }
+
+    ndkPath "/Applications/Unity/Hub/Editor/2022.3.28f1/PlaybackEngines/AndroidPlayer/NDK"
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+
+    implementation files('libs/PDR_EXT-release.aar')
+    implementation project(':maplocationlib')
+    implementation files('libs/UniWebView.aar')
+    implementation 'androidx.activity:activity-ktx:1.7.0' // Added to resolve compatibility issue
+
+    implementation 'com.github.KalebKE:FSensor:v2.1'
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    implementation 'io.ktor:ktor-client-core:1.6.7'
+    implementation 'io.ktor:ktor-client-android:1.6.7'
+    implementation 'io.ktor:ktor-client-json:1.6.7'
+    implementation 'io.ktor:ktor-client-serialization:1.6.7'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1"
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'  // 서버 통신용 의존성 추가 - 0324 김명권
+    implementation 'com.google.code.gson:gson:2.10.1'   // 서버 통신용 의존성 추가 - 0324 김명권
+
+    implementation("com.auth0.android:jwtdecode:2.0.0") // 토큰 디코딩용 추가 - 0922 김명권
+    implementation platform('com.google.firebase:firebase-bom:32.8.1') // Firebase 의존성 추가 - 0922 김명권
+    implementation("com.google.firebase:firebase-messaging") // Firebase 의존성 추가 - 0922 김명권
+    implementation('com.google.firebase:firebase-analytics') // Firebase 의존성 추가 - 0922 김명권
+
+    // ✅ [추가] 소셜 로그인 SDK
+    implementation "com.kakao.sdk:v2-user:2.20.1"          // 카카오 로그인 SDK
+    implementation "com.navercorp.nid:oauth:5.9.1"         // 네이버 로그인 SDK
+    // 구글 로그인 SDK
+    //implementation 'com.google.firebase:firebase-auth'     // Firebase Auth (Google용)
+}
+
+def getSdkDir() {
+    Properties local = new Properties()
+    local.load(new FileInputStream("${rootDir}/local.properties"))
+    return local.getProperty('sdk.dir')
+}
+def getNdkDir() {
+    try {
+        Properties local = new Properties()
+        File lp = new File("${rootDir}/local.properties")
+        if (lp.exists()) {
+            local.load(new FileInputStream(lp))
+            def ndkFromLocal = local.getProperty('ndk.dir')
+            if (ndkFromLocal && new File(ndkFromLocal, 'source.properties').exists()) {
+                return ndkFromLocal
+            }
+            def sdkDir = local.getProperty('sdk.dir')
+            if (sdkDir) {
+                File ndkRoot = new File(sdkDir, 'ndk')
+                if (ndkRoot.exists()) {
+                    def candidates = ndkRoot.listFiles()?.findAll { new File(it, 'source.properties').exists() } ?: []
+                    if (!candidates.isEmpty()) {
+                        candidates.sort()
+                        return candidates.last().absolutePath
+                    }
+                }
+            }
+        }
+        def unityNdk = "/Applications/Unity/Hub/Editor/2022.3.28f1/PlaybackEngines/AndroidPlayer/NDK"
+        if (new File(unityNdk, 'source.properties').exists()) {
+            return unityNdk
+        }
+        def envNdk = System.getenv('ANDROID_NDK_ROOT') ?: System.getenv('ANDROID_NDK_HOME')
+        if (envNdk && new File(envNdk, 'source.properties').exists()) {
+            return envNdk
+        }
+    } catch (Throwable ignore) {}
+    return null
+}
+
+def BuildIl2Cpp(String workingDir, String configuration, String architecture, String abi, String[] staticLibraries) {
+    def commandLineArgs = []
+    commandLineArgs.add("--compile-cpp")
+    commandLineArgs.add("--platform=Android")
+    commandLineArgs.add("--architecture=" + architecture)
+    commandLineArgs.add("--outputpath=" + workingDir + "/src/main/jniLibs/" + abi + "/libil2cpp.so")
+    commandLineArgs.add("--baselib-directory=" + workingDir + "/src/main/jniStaticLibs/" + abi)
+    commandLineArgs.add("--incremental-g-c-time-slice=3")
+    commandLineArgs.add("--configuration=" + configuration)
+    commandLineArgs.add("--dotnetprofile=unityaot-linux")
+    commandLineArgs.add("--profiler-report")
+    commandLineArgs.add("--profiler-output-file=" + workingDir + "/build/il2cpp_"+ abi + "_" + configuration + "/il2cpp_conv.traceevents")
+    commandLineArgs.add("--print-command-line")
+    commandLineArgs.add("--data-folder=" + workingDir + "/src/main/Il2CppOutputProject/Source/il2cppOutput/data")
+    commandLineArgs.add("--generatedcppdir=" + workingDir + "/src/main/Il2CppOutputProject/Source/il2cppOutput")
+    commandLineArgs.add("--cachedirectory=" + workingDir + "/build/il2cpp_"+ abi + "_" + configuration + "/il2cpp_cache")
+    def ndkPathResolved = getNdkDir()
+    if (ndkPathResolved != null && new File(ndkPathResolved, "source.properties").exists()) {
+        commandLineArgs.add("--tool-chain-path=" + ndkPathResolved)
+    } else {
+        println("WARNING: NDK path not found or invalid. Proceeding without explicit --tool-chain-path; IL2CPP will try auto-detect.")
+    }
+    staticLibraries.eachWithIndex {fileName, i->
+        commandLineArgs.add("--additional-libraries=" + workingDir + "/src/main/jniStaticLibs/" + abi + "/" + fileName)
+    }
+    def executableExtension = ""
+    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+        executableExtension = ".exe"
+        commandLineArgs = commandLineArgs*.replace('\"', '\\\"')
+    }
+    exec {
+        executable workingDir + "/src/main/Il2CppOutputProject/IL2CPP/build/deploy/il2cpp" + executableExtension
+        args commandLineArgs
+        environment "ANDROID_SDK_ROOT", getSdkDir()
+        if (ndkPathResolved != null) {
+            environment "ANDROID_NDK_ROOT", ndkPathResolved
+            environment "ANDROID_NDK_HOME", ndkPathResolved
+        }
+    }
+    delete workingDir + "/src/main/jniLibs/" + abi + "/libil2cpp.sym.so"
+    ant.move(file: workingDir + "/src/main/jniLibs/" + abi + "/libil2cpp.dbg.so", tofile: workingDir + "/symbols/" + abi + "/libil2cpp.so")
+}
+
+android {
+    packagingOptions {
+        resources {
+            excludes += 'mozilla/public-suffix-list.txt'
+            excludes += "META-INF/DEPENDENCIES"
+        }
+    }
+    task BuildIl2CppTask {
+        doLast {
+            BuildIl2Cpp(projectDir.toString().replaceAll('\\\\', '/'), 'Release', 'armv7', 'armeabi-v7a', [  ] as String[]);
+            BuildIl2Cpp(projectDir.toString().replaceAll('\\\\', '/'), 'Release', 'arm64', 'arm64-v8a', [  ] as String[]);
+        }
+    }
+    afterEvaluate {
+        if (project(':app').tasks.findByName('mergeDebugJniLibFolders'))
+            project(':app').mergeDebugJniLibFolders.dependsOn BuildIl2CppTask
+        if (project(':app').tasks.findByName('mergeReleaseJniLibFolders'))
+            project(':app').mergeReleaseJniLibFolders.dependsOn BuildIl2CppTask
+    }
+    sourceSets {
+        main {
+            jni.srcDirs = ["src/main/Il2CppOutputProject"]
+            assets.srcDirs += project(':maplocationlib').file('src/main/assets')
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "182950493318",
+    "project_id": "test1234-4c589",
+    "storage_bucket": "test1234-4c589.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:182950493318:android:0aa0740b4a1b9600e76507",
+        "android_client_info": {
+          "package_name": "com.example.daewoo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVM8lb0sPlllVlJxx1DF6sYprXFT9YEJU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

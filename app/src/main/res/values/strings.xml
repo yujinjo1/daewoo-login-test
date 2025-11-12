@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">대우건설</string>
+    <string name="game_view_content_description">Game view</string>
+    <string name="default_web_client_id">[YOUR_WEB_CLIENT_ID]</string>
+    <string name="kakao_app_key">288d7f4793e128640e46b6f3f16109b6</string>
+
+
+</resources>

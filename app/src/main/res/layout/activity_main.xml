@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:viewBindingIgnore="true">
+
+    <!-- Unity SurfaceView(항상 맨 아래 배경) -->
+    <FrameLayout
+        android:id="@+id/unitySurfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 상단 Debug 정보 영역 (선택, 필요시) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_gravity="top"
+        android:visibility="invisible">
+
+        <TextView
+            android:id="@+id/debugView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:textColor="#000000"
+            android:padding="10dp"
+            android:gravity="start"
+            android:textSize="18sp"
+            android:text="상단\n텍스트" />
+
+        <TextView
+            android:id="@+id/debugView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:textColor="#000000"
+            android:padding="5dp"
+            android:gravity="start"
+            android:textSize="12sp"
+            android:text="상세 정보" />
+    </LinearLayout>
+
+    <!-- Push 알림 배너 (맨 위에 Overlay) - 0711 송형근 -->
+    <LinearLayout
+        android:id="@+id/bannerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="@drawable/bg_push_banner"
+        android:padding="16dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:elevation="10dp"
+        android:layout_gravity="top"
+        android:visibility="gone">
+
+        <!-- 상단: 텍스트 (horizontal) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/bannerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#222"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:text="Title" />
+
+                <TextView
+                    android:id="@+id/bannerBody"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#333"
+                    android:textSize="14sp"
+                    android:text="Body" />
+            </LinearLayout>
+
+        </LinearLayout>
+        <!-- 하단: 가운데 정렬된 확인 버튼 -->
+        <Button
+            android:id="@+id/bannerButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="확인"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"/>
+    </LinearLayout>
+
+</FrameLayout>

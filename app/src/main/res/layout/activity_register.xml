@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <EditText
+            android:id="@+id/editTextOrgCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="조직 ID (숫자)"
+            android:inputType="number"
+            android:visibility="gone"
+            tools:visibility="gone" />
+
+        <EditText
+            android:id="@+id/editTextAccountId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="전화번호를 입력해주세요 (예: 01012345678)"
+            android:inputType="number"
+            android:maxLength="11" />
+
+        <EditText
+            android:id="@+id/editTextName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="이름"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/editTextBirthdate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="생년월일 (YYMMDD)"
+            android:inputType="number"
+            android:maxLength="6" />
+
+        <EditText
+            android:id="@+id/editTextEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="소속 회사를 입력하세요."
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/textViewPositionLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="직책을 선택하세요"
+            android:textSize="14sp"
+            android:layout_marginTop="12dp" />
+
+        <LinearLayout
+            android:id="@+id/layoutPositionButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnWorker"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="작업자" />
+
+            <Button
+                android:id="@+id/btnManager"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="매니저" />
+
+            <Button
+                android:id="@+id/btnSupervisor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="감독관" />
+
+            <Button
+                android:id="@+id/btnInspector"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="감리원" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/buttonRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="회원가입"
+            android:layout_marginTop="16dp" />
+
+        <Button
+            android:id="@+id/buttonCancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="뒤로가기"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+</ScrollView>

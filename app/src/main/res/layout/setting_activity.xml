@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:viewBindingIgnore="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <LinearLayout
+        android:id="@+id/coverLayout"
+        android:layout_width="match_parent"
+        android:layout_height="194dp"
+        android:background="#005555"
+        android:gravity="center_vertical|center_horizontal"
+        android:orientation="horizontal"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+
+            android:gravity="center"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="현재 위치 및 방향 입력"
+                android:textColor="@color/white"
+                android:textSize="13dp" />
+
+            <LinearLayout
+                android:layout_width="400dp"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/x_pos"
+                            android:layout_width="117dp"
+                            android:layout_height="24dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="X :"
+                            android:textColor="@color/white" />
+
+                        <EditText
+                            android:id="@+id/input_pos_x"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:gravity="center"
+                            android:inputType="numberDecimal"
+                            android:textColor="@color/white" />
+
+                        <TextView
+                            android:id="@+id/y_pos"
+                            android:layout_width="117dp"
+                            android:layout_height="24dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="Y :"
+                            android:textColor="@color/white" />
+
+                        <EditText
+                            android:id="@+id/input_pos_y"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:gravity="center"
+                            android:inputType="numberDecimal"
+                            android:textColor="@color/white" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/cur_angle"
+                            android:layout_width="169dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="방향 :\n360도"
+                            android:textColor="@color/white" />
+
+                        <SeekBar
+                            android:id="@+id/seekBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+
+                            />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/floor_info"
+                            android:layout_width="169dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="층 선택 : "
+                            android:textColor="@color/white" />
+                        <Spinner
+                            android:id="@+id/floor_spinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"/>
+
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/start_button"
+                    android:layout_width="189dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="수집\n시작"
+                    android:textColor="@color/white" />
+
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/mFrameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+
+        <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </WebView>
+
+        <!-- 디버깅용 -->
+
+        <!--        <Switch-->
+        <!--            android:id="@+id/mapRotationSwitch"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_gravity="left|bottom"-->
+        <!--            android:layout_marginRight="5dp"-->
+        <!--            android:layout_marginBottom="5dp"-->
+        <!--            android:checked="false"-->
+        <!--            android:textColor="@color/black" />-->
+
+
+    </FrameLayout>
+
+</LinearLayout>

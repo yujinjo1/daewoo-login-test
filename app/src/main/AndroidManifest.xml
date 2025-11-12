@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.daewoo">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.Manifest.permission.NETWORK_SETTINGS"/>
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+
+    <!-- Permissions for Foreground Service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <!--  알림 권한 추가 - 0922 김명권  -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-feature android:glEsVersion="0x00030000" />
+    <uses-feature android:name="android.hardware.vulkan.version" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen.multitouch" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen.multitouch.distinct" android:required="false" />
+
+    <application
+
+        android:name=".DaewooApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        tools:replace="android:theme"
+        android:theme="@style/Theme.AppCompat.NoActionBar"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="@string/kakao_app_key" />
+
+        <service
+            android:name=".bg.LocationService"
+            android:foregroundServiceType="location" />
+        <service
+            android:name=".bg.SensorMaster"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+        <service
+            android:name=".bg.FlatmapBackgroundService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
+        <meta-data android:name="unity.splash-mode" android:value="0" />
+        <meta-data android:name="unity.splash-enable" android:value="True" />
+        <meta-data android:name="unity.launch-fullscreen" android:value="True" />
+        <meta-data android:name="unity.render-outside-safearea" android:value="True" />
+        <meta-data android:name="notch.config" android:value="portrait|landscape" />
+        <meta-data android:name="unity.auto-report-fully-drawn" android:value="true" />
+
+        <!--        로그인 코드 추가 0922 김명권-->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+
+            </intent-filter>
+
+        </activity>
+        <activity android:name=".RegisterActivity" />
+        <activity android:name=".flatmapActivity" />
+        <activity
+            android:name=".MainPage"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="fullUser"
+            android:launchMode="singleTask"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
+            android:resizeableActivity="true"
+            android:hardwareAccelerated="false" >
+
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+            <meta-data android:name="notch_support" android:value="true" />
+            <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="maximize" />
+            <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <!-- Firebase Messaging Service 등록 - 0922 김명권 수정됨 -->
+        <service
+            android:name=".message.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- ============================== -->
+        <!-- 1112 조유진 소셜 로그인 관련 설정 추가 -->
+        <!-- ============================== -->
+
+        <!-- 조유진1112 카카오 로그인 리다이렉트 Activity -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="kakao9a46ffdb7c4630df2fa5a39d3aaa3d6b"
+                    android:host="oauth" />
+            </intent-filter>
+        </activity>
+
+        <!--  네이버 SDK 메타데이터 -->
+        <meta-data
+            android:name="com.naver.sdk.clientId"
+            android:value="9bXw0KRj2PnMLIgKBTIc" />
+        <meta-data
+            android:name="com.naver.sdk.clientSecret"
+            android:value="BS2AbgJ259" />
+        <meta-data
+            android:name="com.naver.sdk.clientName"
+            android:value="korea" />
+
+        <!-- 구글 로그인은 Firebase 설정 파일(google-services.json) 필요 -->
+        <!-- app/ 폴더에 google-services.json 추가 후 gradle에 com.google.gms.google-services 플러그인 적용 -->
+
+    </application>
+
+</manifest>
