@@ -19,6 +19,10 @@ import android.util.Log
 import com.auth0.android.jwt.JWT
 import com.example.daewoo.constants.ApiConstants
 import com.example.daewoo.utils.PreferenceHelper
+import com.kakao.sdk.auth.model.OAuthToken
+import com.kakao.sdk.common.model.ClientError
+import com.kakao.sdk.common.model.ClientErrorCause
+import com.kakao.sdk.user.UserApiClient
 
 
 // 로그인 요청 시 서버로 보내는 데이터 모델
@@ -33,21 +37,63 @@ data class LoginResponseData(
     @SerializedName("refreshToken") val refreshToken: String
 )
 
+// 카카오 로그인 요청 데이터 - 새 서버 형식에 맞게 수정
+data class KakaoLoginRequest(
+    val kakaoId: String,
+    val email: String,
+    val nickname: String
+)
+
+// 새 Spring Boot 서버 응답 형식
+data class NewCommonResponse<T>(
+    val success: Boolean,
+    val message: String,
+    val data: T?
+)
+
+// 새 서버 로그인 응답 데이터
+data class NewLoginResponseData(
+    val token: String,
+    val userId: Long,
+    val accountId: String,
+    val nickname: String,
+    val email: String
+)
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var idField: EditText
     private lateinit var pwField: EditText
     private lateinit var loginBtn: Button
     private lateinit var registerBtn: Button
+    private lateinit var kakaoLoginBtn: Button  // 카카오 로그인 버튼 추가
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("LOGIN_ACTIVITY", "LoginActivity onCreate 시작")
         setContentView(R.layout.activity_login)
+        Log.d("LOGIN_ACTIVITY", "setContentView 완료")
 
+        //  키 해시 출력 (임시 디버깅용)
+        try {
+            val info = packageManager.getPackageInfo(
+                packageName,
+                android.content.pm.PackageManager.GET_SIGNATURES
+            )
+            for (signature in info.signatures) {
+                val md = java.security.MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                val keyHash = android.util.Base64.encodeToString(md.digest(), android.util.Base64.NO_WRAP)
+                Log.d("KAKAO_KEY_HASH", "KeyHash: $keyHash")
+            }
+        } catch (e: Exception) {
+            Log.e("KAKAO_KEY_HASH", "키 해시 생성 실패", e)
+        }
         // UI 요소 초기화 및 연결
         idField = findViewById(R.id.editTextAccountId)
         pwField = findViewById(R.id.editTextPassword)
         loginBtn = findViewById(R.id.buttonLogin)
         registerBtn = findViewById(R.id.buttonGoRegister)
+        kakaoLoginBtn = findViewById(R.id.buttonKakaoLogin)  // 카카오 버튼 초기화
 
         // SharedPreferences에서 저장된 로그인 자동입력용 계정 ID/PW 불러오기
         // ACCOUNT_ID/ACCOUNT_PW는 마지막 로그인에 사용된 계정 정보로, 입력란 자동 채움용입니다.
@@ -79,6 +125,133 @@ class LoginActivity : AppCompatActivity() {
         registerBtn.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java)) // RegisterActivity로 이동
         }
+        // 카카오 로그인 버튼
+        kakaoLoginBtn.setOnClickListener {
+            Log.d("KAKAO_LOGIN", "카카오 로그인 버튼 클릭됨!")
+            Toast.makeText(this, "카카오 로그인 시작", Toast.LENGTH_SHORT).show()
+            performKakaoLogin()
+        }
+    }
+    // 카카오 로그인 수행
+    private fun performKakaoLogin() {
+        Log.d("KAKAO_LOGIN", "performKakaoLogin() 시작")
+        
+        // 카카오톡 설치 여부 확인
+        val isKakaoTalkAvailable = UserApiClient.instance.isKakaoTalkLoginAvailable(this)
+        Log.d("KAKAO_LOGIN", "카카오톡 설치 여부: $isKakaoTalkAvailable")
+        
+        if (isKakaoTalkAvailable) {
+            // 카카오톡으로 로그인
+            Log.d("KAKAO_LOGIN", "카카오톡으로 로그인 시도")
+            UserApiClient.instance.loginWithKakaoTalk(this) { token, error ->
+                handleKakaoLoginResult(token, error)
+            }
+        } else {
+            // 카카오 계정으로 로그인 (웹 브라우저)
+            Log.d("KAKAO_LOGIN", "카카오 계정으로 로그인 시도")
+            UserApiClient.instance.loginWithKakaoAccount(this) { token, error ->
+                handleKakaoLoginResult(token, error)
+            }
+        }
+    }
+
+    // 카카오 로그인 결과 처리
+    private fun handleKakaoLoginResult(token: OAuthToken?, error: Throwable?) {
+        if (error != null) {
+            Log.e("KAKAO_LOGIN", "카카오 로그인 실패", error)
+
+            // 사용자가 취소한 경우
+            if (error is ClientError && error.reason == ClientErrorCause.Cancelled) {
+                Toast.makeText(this, "로그인을 취소했습니다", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            Toast.makeText(this, "카카오 로그인 실패: ${error.message}", Toast.LENGTH_SHORT).show()
+        } else if (token != null) {
+            Log.d("KAKAO_LOGIN", "카카오 로그인 성공, 토큰: ${token.accessToken}")
+
+            // 카카오 사용자 정보 가져오기
+            UserApiClient.instance.me { user, userError ->
+                if (userError != null) {
+                    Log.e("KAKAO_LOGIN", "사용자 정보 요청 실패", userError)
+                    Toast.makeText(this, "사용자 정보 요청 실패", Toast.LENGTH_SHORT).show()
+                } else if (user != null) {
+                    Log.d("KAKAO_LOGIN", "사용자 정보 - ID: ${user.id}, 닉네임: ${user.kakaoAccount?.profile?.nickname}")
+
+                    // 백엔드 서버로 카카오 사용자 정보 전송하여 자체 토큰 발급
+                    sendKakaoUserInfoToBackend(
+                        kakaoId = user.id.toString(),
+                        email = user.kakaoAccount?.email ?: "no-email@kakao.com",
+                        nickname = user.kakaoAccount?.profile?.nickname ?: "카카오사용자"
+                    )
+                }
+            }
+        }
+    }
+
+    // 백엔드 서버로 카카오 사용자 정보 전송 - 새 서버 형식
+    private fun sendKakaoUserInfoToBackend(kakaoId: String, email: String, nickname: String) {
+        val client = OkHttpClient()
+        val gson = Gson()
+        val requestData = KakaoLoginRequest(kakaoId, email, nickname)
+        val json = gson.toJson(requestData)
+        val body = json.toRequestBody("application/json".toMediaType())
+
+        Log.d("KAKAO_LOGIN", "백엔드 요청 JSON → $json")
+
+        val request = Request.Builder()
+            .url("${ApiConstants.SPRING_BASE_URL}/auth/kakao/login")  // 새 백엔드 카카오 로그인 API
+            .post(body)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("KAKAO_LOGIN", "백엔드 연결 실패: ${e.message}")
+                runOnUiThread {
+                    Toast.makeText(this@LoginActivity, "서버 연결 실패", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val bodyStr = response.body?.string()
+                Log.d("KAKAO_LOGIN", "백엔드 응답 코드: ${response.code}")
+                Log.d("KAKAO_LOGIN", "백엔드 응답 바디: $bodyStr")
+
+                if (response.isSuccessful && bodyStr != null) {
+                    try {
+                        val type = object : TypeToken<NewCommonResponse<NewLoginResponseData>>() {}.type
+                        val result = gson.fromJson<NewCommonResponse<NewLoginResponseData>>(bodyStr, type)
+
+                        if (result.success && result.data != null) {
+                            Log.d("KAKAO_LOGIN", "카카오 로그인 성공: userId=${result.data.userId}, accountId=${result.data.accountId}")
+                            
+                            // 새 JWT 토큰 형식으로 저장
+                            saveNewUserInfoAndTokens(
+                                userId = result.data.userId.toString(),
+                                accountId = result.data.accountId,
+                                nickname = result.data.nickname,
+                                accessToken = result.data.token,
+                                refreshToken = "" // 새 서버는 refresh token을 별도로 제공하지 않음
+                            )
+                            navigateToMainPage()
+                        } else {
+                            runOnUiThread {
+                                Toast.makeText(this@LoginActivity, "로그인 실패: ${result.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("KAKAO_LOGIN", "JSON 파싱 오류: ${e.message}", e)
+                        runOnUiThread {
+                            Toast.makeText(this@LoginActivity, "응답 파싱 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(this@LoginActivity, "카카오 로그인 실패: 서버 오류", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        })
     }
 
     // 로그인 요청을 서버로 전송하는 함수
@@ -179,7 +352,7 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
-    // 사용자 정보(userId)와 토큰을 SharedPreferences에 저장하는 함수
+    // 사용자 정보(userId)와 토큰을 SharedPreferences에 저장하는 함수 (기존 API용)
     // userId 타입이 String으로 변경되었으므로 putString 사용
     private fun saveUserInfoAndTokens(userId: String, accessToken: String, refreshToken: String) {
         val pref = getSharedPreferences("USER_PREF", Context.MODE_PRIVATE) // SharedPreferences 객체 가져오기
@@ -189,6 +362,20 @@ class LoginActivity : AppCompatActivity() {
             .putString("REFRESH_TOKEN", refreshToken) // Refresh Token 저장
             .apply() // 변경사항 적용
         Log.d("USER_PREF", "saveUserInfoAndTokens() 호출됨. 저장된 userId = $userId, accessToken = $accessToken") // 저장 로그 출력
+    }
+
+    // 새 카카오 서버용 사용자 정보 저장 함수
+    private fun saveNewUserInfoAndTokens(userId: String, accountId: String, nickname: String, accessToken: String, refreshToken: String) {
+        val pref = getSharedPreferences("USER_PREF", Context.MODE_PRIVATE)
+        pref.edit()
+            .putString("USER_ID", userId)
+            .putString("ACCOUNT_ID", accountId) // 카카오 계정 ID 저장
+            .putString("NICKNAME", nickname) // 닉네임 저장
+            .putString("ACCESS_TOKEN", accessToken)
+            .putString("REFRESH_TOKEN", refreshToken)
+            .putString("LOGIN_TYPE", "KAKAO") // 로그인 타입 구분
+            .apply()
+        Log.d("USER_PREF", "saveNewUserInfoAndTokens() 호출됨. 저장된 userId = $userId, accountId = $accountId, nickname = $nickname")
     }
 
     private fun navigateToMainPage() {
